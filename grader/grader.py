@@ -6,6 +6,7 @@ import copy
 import os
 import multiprocessing
 import warnings
+import functools
 
 import pandas as pd
 import numpy as np
@@ -76,7 +77,7 @@ class Grader:
         self.multiprocessing_cores = args.multiprocessing
 
         # This is where the summary excel file will be saved
-        self.summary_path = pathlib.Path(self.student_dir / 'summary.xlsx')
+        self.summary_path = pathlib.Path(self.student_dir / f'{self.solution_file.stem}_summary.xlsx')
 
         # Add directories to the path so we can import the modules more easily later
         # and for the student's code to find files with open() as well
@@ -138,7 +139,7 @@ class Grader:
             if hasattr(fn, 'no_test_cases'):
                 to_remove.append(fn_name)
             else:
-                assert hasattr(fn, 'gen_fn_params'), f'[Debug] Not grading "{fn_name}" due to lack of annotation. Did you forget to annotate it?'
+                assert hasattr(fn, 'gen_fn_params') or hasattr(fn, 'set_fn_params'), f'[Debug] Not grading "{fn_name}" due to lack of annotation. Did you forget to annotate it?'
 
         for t in to_remove:
             del self.solution_fns[t]
@@ -156,7 +157,7 @@ class Grader:
 
         print('[Debug] Converting Jupyter notebooks')
         start_time = timer()
-        if not self.multiprocessing_cores:
+        if self.multiprocessing_cores <= 1:
             for fpath in tqdm(all_jupyter_fpaths):
                 self.convert_one_student_jupyter_to_py(fpath)
         else:
@@ -171,12 +172,7 @@ class Grader:
             return
 
         print(f"[Auto-Grader] Converting jupyter notebook {fpath.stem} into regular code")
-        subprocess.call(['jupyter', 'nbconvert', '--to', 'script', str(fpath)])
-
-        # Rename from .txt to .py
-        output_fpath = fpath.with_suffix(".txt")
-        assert output_fpath.exists(), f'[Debug] Converted Jupyter file {output_fpath} could not be found'
-        output_fpath.rename(output_fpath.with_suffix('.py'))
+        subprocess.call(['jupyter', 'nbconvert', '--to', 'python', str(fpath)])
 
         # Move the notebook
         fpath.rename(self.notebook_dir / fpath.name)
@@ -219,7 +215,7 @@ class Grader:
             warnings.simplefilter("ignore")
 
             all_scores = []
-            if not self.multiprocessing_cores:
+            if self.multiprocessing_cores <= 1:
                 for fpath in self.all_student_files:
                     print('[Debug] Grading', fpath)
                     stu_scores = self.grade_one_student(fpath)
@@ -255,9 +251,9 @@ class Grader:
 
             # Try to import the student's code
             import_exception = stu_code.import_module()
+            scores['import_exception'] = import_exception
             if import_exception:
                 stu_code.log(f'{Colors.T_MAGENTA}Import exception [{import_exception}]{Colors.T_RESET}')
-                scores['import_exception'] = True
                 return scores
 
             # Go through all functions in the solution
@@ -286,17 +282,33 @@ class Grader:
 
             # Convert the final score to the scale passed by the user
             final_score = final_score * self.max_grade
+            scores['final_grade'] = final_score
 
             # Log final scores
             stu_code.write_feedback(f'Final grade = {final_score:.2f}/{self.max_grade}')
             stu_code.log(f'Final grade = {color}{final_score:.2f}/{self.max_grade}{Colors.T_RESET}')
             return scores
 
+    def run_sol_fn(self, sol_fn, sol_instnc, sol_params):
+        if sol_instnc:
+            sol_fn = functools.partial(sol_fn, sol_instnc)
+
+        assert isinstance(sol_params, dict), '[Debug] Solution parameters were not stored in a dictionary'
+        sol_fn = functools.partial(sol_fn, **sol_params)
+        
+        start_t = timer()
+        sol_output = sol_fn()
+        end_t = timer()
+
+        duration_sec = end_t - start_t
+        return sol_output, duration_sec
+
     def grade_one_function(self, fn_name: str, sol_fn, stu_code: StudentCode):
         """Runs all test cases and grades the provided function for one specific student."""
         # Gather the metadata provided by the decorators
         is_class_fn = hasattr(sol_fn, 'gen_class_params')
         has_custom_equality_fn = hasattr(sol_fn, 'equality_fn')
+        has_param_gen = hasattr(sol_fn, 'gen_fn_params')
         n_trials: int = sol_fn.max_trials
 
         # Log detailed failed cases every 1/3rd of the trials
@@ -311,6 +323,10 @@ class Grader:
         # How many exceptions we will allow before stopping the trials
         n_exception_patience = 5
 
+        # Class instances for functions
+        sol_instnc = None
+        stu_instnc = None
+
         for trial_idx in range(n_trials):
             header = f'Test Case #{trial_idx+1}/{n_trials}'
             stu_code.p_bar.update()
@@ -320,9 +336,13 @@ class Grader:
             if trial_idx % log_freq == 0:
                 log_next_failed_case = True
 
-            # Generate function parameters. We give the student a deep copy
-            # to decouple references which is important for some exercises
-            sol_params = sol_fn.gen_fn_params()
+            # Generate function parameters or get them from a fixed test set list
+            if has_param_gen:
+                sol_params = sol_fn.gen_fn_params()
+            else:
+                sol_params = sol_fn.set_fn_params[trial_idx]
+
+            # Give the student a deep copy to decouple references which is important for some exercises
             stu_params = copy.deepcopy(sol_params)
 
             # Create a new class instance every X iterations of the function we are testing when testing class functions
@@ -343,18 +363,9 @@ class Grader:
             # Check if we need to run the functions with an instance of a class or not
             # We also time the solution in seconds for logging later in case of student code timeouts
             stu_code.log_postfix(f'{header} | Running fns')
-            if is_class_fn:
-                start_t = timer()
-                sol_output = sol_fn(sol_instnc, **sol_params)
-                end_t = timer()
-
-                stu_output = stu_code.run_fn(fn_name, stu_instnc, **stu_params)
-            else:
-                start_t = timer()
-                sol_output = sol_fn(**sol_params)
-                end_t = timer()
-
-                stu_output = stu_code.run_fn(fn_name, **stu_params)
+            sol_output, duration_sec = self.run_sol_fn(sol_fn, sol_instnc, sol_params)
+            
+            stu_output = stu_code.run_fn(fn_name, stu_instnc, stu_params)
 
             # TODO: Improve this
             def type_to_str(output):
@@ -368,10 +379,12 @@ class Grader:
                     return str(output)
 
 
-            def params_to_str(params):
+            def params_to_str(params: dict):
+
                 output = ''
-                for key, param in params.items():
-                    output += f'{key}: {type_to_str(param)}, '
+                for param_name, param_value in params.items():
+                    output += f'{param_name}: {type_to_str(param_value)}, '
+
                 return output[:-2]
 
             def output_to_str(output_all):
@@ -383,6 +396,7 @@ class Grader:
                 else:
                     return type_to_str(output_all)
 
+            # TODO: Should not print the following when the return type does not matter
             def diff_to_str(sol_output, stu_output):
                 if type(sol_output) != type(stu_output):
                     if hasattr(sol_output, '__class__'):
@@ -415,7 +429,7 @@ class Grader:
 
                 if isinstance(stu_output, StudentTimeoutException):
                     stu_code.write_feedback(f'[{header}] Your code took too long to run so it was timed out and stopped. Remaining exceptions allowed = {n_exception_patience}')
-                    stu_code.write_feedback(f'\tAs a reference, the solution took {end_t - start_t:.6f}s to run. The time limit is {TIMEOUT_S}s \n')
+                    stu_code.write_feedback(f'\tAs a reference, the solution took {duration_sec:.6f}s to run. The time limit is {TIMEOUT_S}s \n')
                 else:
                     stu_code.write_feedback(f'[{header}] Got exception [{stu_output}] when running function {fn_name}({params_to_str(stu_params)}). Remaining exceptions allowed = {n_exception_patience}')
                     stu_code.write_feedback(f'\t{stu_code.tb}\n')

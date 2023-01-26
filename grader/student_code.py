@@ -2,6 +2,7 @@ import os
 import traceback
 import sys
 import pathlib
+import functools
 
 from tqdm import tqdm
 import wrapt_timeout_decorator
@@ -131,16 +132,22 @@ class StudentCode:
         """Determines if the given function name is in the student code"""
         return fn_name in self.fns.keys()
 
-    def run_fn(self, fn_name, *args, **kwargs):
+    def run_fn(self, fn_name, stu_instnc, stu_params):
         """Runs the provided function given the function name."""
         assert hasattr(self, 'fns'), 'You must call import_module() first before calling run_fn'
 
         if fn_name not in self.fns.keys():
             raise Exception(f'Did not find {fn_name} in the student code')
+        
+        stu_fn = self.fns[fn_name]
+
+        # If a class instance is provided, wrap as a partial function
+        if stu_instnc:
+            stu_fn = functools.partial(stu_fn, stu_instnc)
+            stu_fn = functools.wraps(self.fns[fn_name])(stu_fn)
 
         with SilenceOutput():
-            fn = self.fns[fn_name]
-            return self.__run_fn_timeout__(fn, *args, **kwargs)
+            return self.__run_fn_timeout__(stu_fn, **stu_params)
 
     def create_class_instance(self, fn_name, **constructor_kwargs):
         """Creates an instance of the class needed to run the provided function."""

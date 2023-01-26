@@ -13,12 +13,7 @@
 # ██████████ by Jose G. Perez <DeveloperJose> ███████████████████████████████████████████████████████████████████████████████████████████████████████████
 # ██████████████ Last Modified: 07/05/2022 ██████████████████████████████████████████████████████████████████████████████████████████████████████████████
 # Limitations:
-#   * Requires a Linux machine when grading for the timeout functionality
-#   * You cannot use underscores in the titles of the Blackboard assignments
-#   * Cannot grade class initializers (__init__ functions)
-#   * Students cannot use global variables
-#   * Can only grade top-level functions and top-level classes, no classes within classes or anything like that
-#   * Does not currently support comparing of print() statements (It could be done, but it's just easier if you make the students return a string)
+
 # Notes:
 #   * If you want students to see their mistakes more easily implement the __str__() and __repr__() functions for your classes
 #   * Features command-line colors!
@@ -54,8 +49,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-sol', '--solution_file', type=pathlib.Path, required=True)
     parser.add_argument('-sd', '--student_dir', type=pathlib.Path, required=False)
-    parser.add_argument('-g', '--max_grade', type=float, required=False, default=100)
-    parser.add_argument('-mp', '--multiprocessing', type=int, required=False)
+    parser.add_argument('-mg', '--max_grade', type=float, required=False, default=100)
+    parser.add_argument('-mp', '--multiprocessing', type=int, required=False, default=1)
     parser.add_argument('-s', '--students', nargs='+', required=False)
     args = parser.parse_args()
 
