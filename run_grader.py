@@ -23,13 +23,13 @@
 #   3. Import the solution file functions and classes
 #   4. Convert jupyter .ipynb notebooks to .py files
 #   5. Grade all student code files
-#       * Parses .py to extract only functions and classes, removing everything else, and writing "pass" to any empty classes/functions to try and make the code run
+#       * Parse .py to extract only functions and classes, removing everything else, and writing "pass" to any empty classes/functions to try and make the code run
 # General Todo List:
 #   TODO: Figure out if we can get timeout to work on Windows
 #   TODO: Allow each problem to have its own max_score
 #   TODO: Allow each problem to set its weight relative to the final score
 #   TODO: Allow each problem to pass timeout_s instead of defining a single one
-#   TODO: Allow for extra credit
+#   TODO: Test extra credit annotation
 import pathlib
 import argparse
 import zipfile
@@ -113,8 +113,6 @@ if __name__ == '__main__':
 
     start_time = timer()
     grader = Grader(args)
-    grader.override_libraries()
-    grader.import_solution()
     grader.convert_all_student_jupyter_to_py()
     grader.grade_all_students()
     end_time = timer()
@@ -123,5 +121,5 @@ if __name__ == '__main__':
 
     if 'import_exception' in grader.df.keys():
         df = grader.df[grader.df['import_exception'] == True]
-        print(f"Could not import the following students's code even after running code_parser")
+        print(f"Could not import the following students's code even after running code_parser. You will need to manually correct them.")
         print(df['student'].values)

@@ -1,5 +1,6 @@
 from grader.student_code import StudentCode
 
+
 def parse_py_file(stu_code: StudentCode):
     """Parses .py files and extracts only classes and functions.
 

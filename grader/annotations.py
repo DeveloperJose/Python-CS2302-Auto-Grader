@@ -66,6 +66,7 @@ def generate_test_case(__trials__=2500, **fn_kwargs):
         return wrapper
     return decorator
 
+
 def set_test_case(**set_kwargs):
 
     def decorator(func):
@@ -75,7 +76,7 @@ def set_test_case(**set_kwargs):
             max_trials *= len(k_data)
 
         assert max_trials > 1, f'[Debug] Error while annotating function "{func.__name__}" [Tuples must be populated]'
-        
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
@@ -102,5 +103,15 @@ def no_test_cases():
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
         wrapper.no_test_cases = True
+        return wrapper
+    return decorator
+
+
+def extra_credit():
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        wrapper.extra_credit = True
         return wrapper
     return decorator

@@ -22,7 +22,8 @@ class Colors:
 
 
 def get_module_functions(module):
-    """Gets all the functions in the module and all class constructors.
+    """
+    Gets all the functions in the module and all class constructors.
 
     Ignores class constructors and functions named draw() without requiring annotation.
     """

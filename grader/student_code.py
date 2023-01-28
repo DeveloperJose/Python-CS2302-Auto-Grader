@@ -9,7 +9,7 @@ import wrapt_timeout_decorator
 
 from grader.utils import get_module_functions, Colors
 
-TIMEOUT_S = 8#0.1  # How many seconds should we allow student functions to run before terminating them
+TIMEOUT_S = 8  # 0.1  # How many seconds should we allow student functions to run before terminating them
 
 
 class StudentTimeoutException(Exception):
@@ -41,6 +41,8 @@ class StudentCode:
 
         self.feedback_dir = self.student_dir / 'feedback'
         assert self.feedback_dir.exists(), f'Student feedback directory {self.feedback_dir} does not exist. Was "Grader" unable to __init__ correctly?'
+
+        self.header = ''
 
     def __enter__(self):
         # Determine if it's a Blackboard bulk download file in the format
@@ -126,7 +128,10 @@ class StudentCode:
         self.p_bar.desc = f'[{self.student_name}] {msg}'
 
     def log_postfix(self, msg):
-        self.p_bar.postfix = f'{Colors.T_CYAN}{msg}{Colors.T_RESET}'
+        self.p_bar.postfix = f'{Colors.T_CYAN}{self.header} | {msg}{Colors.T_RESET}'
+
+    def log_progress(self, trial_idx, n_trials):
+        self.header = f'Test Case #{trial_idx+1}/{n_trials}'
 
     def has_fn(self, fn_name):
         """Determines if the given function name is in the student code"""
@@ -138,7 +143,7 @@ class StudentCode:
 
         if fn_name not in self.fns.keys():
             raise Exception(f'Did not find {fn_name} in the student code')
-        
+
         stu_fn = self.fns[fn_name]
 
         # If a class instance is provided, wrap as a partial function
