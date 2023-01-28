@@ -1,29 +1,3 @@
-# ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
-#
-# ▄████████    ▄████████         ▄████████ ███    █▄      ███      ▄██████▄     ▄██████▄     ▄████████    ▄████████ ████████▄     ▄████████    ▄████████
-# ███    ███   ███    ███        ███    ███ ███    ███ ▀█████████▄ ███    ███   ███    ███   ███    ███   ███    ███ ███   ▀███   ███    ███   ███    ███
-# ███    █▀    ███    █▀         ███    ███ ███    ███    ▀███▀▀██ ███    ███   ███    █▀    ███    ███   ███    ███ ███    ███   ███    █▀    ███    ███
-# ███          ███               ███    ███ ███    ███     ███   ▀ ███    ███  ▄███         ▄███▄▄▄▄██▀   ███    ███ ███    ███  ▄███▄▄▄      ▄███▄▄▄▄██▀
-# ███        ▀███████████      ▀███████████ ███    ███     ███     ███    ███ ▀▀███ ████▄  ▀▀███▀▀▀▀▀   ▀███████████ ███    ███ ▀▀███▀▀▀     ▀▀███▀▀▀▀▀
-# ███    █▄           ███        ███    ███ ███    ███     ███     ███    ███   ███    ███ ▀███████████   ███    ███ ███    ███   ███    █▄  ▀███████████
-# ███    ███    ▄█    ███        ███    ███ ███    ███     ███     ███    ███   ███    ███   ███    ███   ███    ███ ███   ▄███   ███    ███   ███    ███
-# ████████▀   ▄████████▀         ███    █▀  ████████▀     ▄████▀    ▀██████▀    ████████▀    ███    ███   ███    █▀  ████████▀    ██████████   ███    ███
-#                                                                                         ███    ███                                        ███    ███
-#
-# ██████████ by Jose G. Perez <DeveloperJose> ███████████████████████████████████████████████████████████████████████████████████████████████████████████
-# ██████████████ Last Modified: 07/05/2022 ██████████████████████████████████████████████████████████████████████████████████████████████████████████████
-# Limitations:
-
-# Notes:
-#   * If you want students to see their mistakes more easily implement the __str__() and __repr__() functions for your classes
-#   * Features command-line colors!
-# Grading Pipeline:
-#   1. Prepare grader by parsing command-line arguments and creating directories to be used later
-#   2. Override some libraries we don't want to run while grading such as matplotlib's show() or Colab's file.upload()
-#   3. Import the solution file functions and classes
-#   4. Convert jupyter .ipynb notebooks to .py files
-#   5. Grade all student code files
-#       * Parse .py to extract only functions and classes, removing everything else, and writing "pass" to any empty classes/functions to try and make the code run
 import pathlib
 import argparse
 import zipfile
