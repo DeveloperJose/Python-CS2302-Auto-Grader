@@ -190,7 +190,6 @@ class Grader:
             stu_code.write_feedback(f'\n ** Summary of all problem scores = \n\n \t{scores}\n')
 
             # Compute final score out as an integer between 0 and 1
-            # TODO: Currently all problems are evenly weighted, perhaps we should allow the annotation to set the weight
             final_score = total_score / (len(self.sol_code) - self.sol_code.num_extra_credit())
             color = Colors.T_RED if final_score < 0.7 else Colors.T_YELLOW if final_score < 0.8 else Colors.T_DARK_GREEN if final_score < 0.9 else Colors.T_GREEN
 

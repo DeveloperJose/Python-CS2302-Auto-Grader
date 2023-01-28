@@ -88,21 +88,20 @@ def output_to_str(output_all):
 
 def diff_to_str(sol_output, stu_output):
     """Finds out a human readable string specifying what the differences are between the specified outputs."""
-    # TODO: Should not print the following when the return type does not matter
     if type(sol_output) != type(stu_output):
         if hasattr(sol_output, '__class__'):
-            sol_str = sol_output.__class__.__str__
+            # sol_str = sol_output.__class__.__str__
             # return f'Difference: Solution={sol_output} vs Student={sol_str(stu_output)}'
             return f'Difference: The classes are not equivalent'
         else:
             return f'Difference: Types are different (Solution={type(sol_output)} vs Student={type(stu_output)}'
-    if type(sol_output) is set:
-        return f'Difference: Items in solution but not in student = {sol_output.difference(stu_output)}, item in student but not in solution = {stu_output.difference(sol_output)}'
+    elif type(sol_output) is set:
+        return f'Difference: Items in solution set but not in student set = {sol_output.difference(stu_output)}, item in student set but not in solution set = {stu_output.difference(sol_output)}'
     elif type(sol_output) is list:
         if len(sol_output) != len(stu_output):
             return f'Difference: Lists are not the same length (Solution={len(sol_output)} vs Student={len(stu_output)})'
 
-        s = 'Difference: '
+        # s = 'Difference: '
         idxs = []
         for idx, (sol_item, stu_item) in enumerate(zip(sol_output, stu_output)):
             if sol_item != stu_item:

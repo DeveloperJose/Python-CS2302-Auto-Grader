@@ -102,9 +102,12 @@ class TestCaseGenerator:
                 log_next_failed_case = False
 
                 self.stu_code.write_feedback(f'Test Case #{trial_idx+1} failed')
-                self.stu_code.write_feedback(f'\t The Solution Outputs -> {self.fn_name}({params_to_str(sol_params)})={output_to_str(sol_output)}')
-                self.stu_code.write_feedback(f'\tYour Solution Outputs -> {self.fn_name}({params_to_str(stu_params)})={output_to_str(stu_output)}\n')
-                self.stu_code.write_feedback(f'\t{diff_to_str(sol_output, stu_output)}')
+                # Only print the output differences when we are not using a custom comparer function
+                # Fixes Hassan's comment about not needing to print when output return type doesn't matter
+                if not self.has_equality_fn:
+                    self.stu_code.write_feedback(f'\t The Solution Outputs -> {self.fn_name}({params_to_str(sol_params)})={output_to_str(sol_output)}')
+                    self.stu_code.write_feedback(f'\tYour Solution Outputs -> {self.fn_name}({params_to_str(stu_params)})={output_to_str(stu_output)}\n')
+                    self.stu_code.write_feedback(f'\t{diff_to_str(sol_output, stu_output)}')
 
                 # Use our str function to print the student class
                 if self.is_class_fn:

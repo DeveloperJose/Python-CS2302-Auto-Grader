@@ -10,7 +10,7 @@ import wrapt_timeout_decorator
 from grader.utils import get_module_functions, Colors
 
 TIMEOUT_S = 8  # 0.1  # How many seconds should we allow student functions to run before terminating them
-
+DEBUG = False
 
 class StudentTimeoutException(Exception):
     """Exception that is raised when a student function takes too long to run and is timed out."""
@@ -24,7 +24,8 @@ class SilenceOutput:
         self.stdout = sys.stdout
 
     def __enter__(self):
-        sys.stdout = None
+        if not DEBUG:
+            sys.stdout = None
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout = self.stdout

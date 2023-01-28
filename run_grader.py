@@ -24,12 +24,6 @@
 #   4. Convert jupyter .ipynb notebooks to .py files
 #   5. Grade all student code files
 #       * Parse .py to extract only functions and classes, removing everything else, and writing "pass" to any empty classes/functions to try and make the code run
-# General Todo List:
-#   TODO: Figure out if we can get timeout to work on Windows
-#   TODO: Allow each problem to have its own max_score
-#   TODO: Allow each problem to set its weight relative to the final score
-#   TODO: Allow each problem to pass timeout_s instead of defining a single one
-#   TODO: Test extra credit annotation
 import pathlib
 import argparse
 import zipfile
@@ -37,6 +31,7 @@ from timeit import default_timer as timer
 
 
 from grader import Grader
+import grader.student_code
 
 
 def is_code_file(file_str):
@@ -52,9 +47,11 @@ if __name__ == '__main__':
     parser.add_argument('-mg', '--max_grade', type=float, required=False, default=100)
     parser.add_argument('-mp', '--multiprocessing', type=int, required=False, default=1)
     parser.add_argument('-s', '--students', nargs='+', required=False)
+    parser.add_argument('-d', '--debug', type=bool, required=False, default=False)
     args = parser.parse_args()
 
-    print("""
+
+    print(f"""
         ███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
 
         ▄████████    ▄████████         ▄████████ ███    █▄      ███      ▄██████▄     ▄██████▄     ▄████████    ▄████████ ████████▄     ▄████████    ▄████████ 
@@ -67,8 +64,13 @@ if __name__ == '__main__':
         ████████▀   ▄████████▀         ███    █▀  ████████▀     ▄████▀    ▀██████▀    ████████▀    ███    ███   ███    █▀  ████████▀    ██████████   ███    ███ 
                                                                                                 ███    ███                                        ███    ███ 
 
-        ██████████ by Jose G. Perez <DeveloperJose> ███████████████████████████████████████████████████████████████████████████████████████████████████████████
+        ██████████ by Jose G. Perez <DeveloperJose> | Debugging = {args.debug} ████████████████████████████████████████████████████████████████████████████████
     """)
+    # Debug flags
+    if args.debug:
+        grader.student_code.DEBUG = True
+        args.multiprocessing = 1
+        args.students = ['jperez50']
 
     assert args.solution_file.exists(), f'--solution_file {args.solution_file} does not exist'
 
@@ -119,7 +121,7 @@ if __name__ == '__main__':
 
     print(f'Finished grading! Grading took {end_time - start_time:.2f}s')
 
-    if 'import_exception' in grader.df.keys():
-        df = grader.df[grader.df['import_exception'] == True]
+    failed_df = grader.df[~grader.df['import_exception'].isna()]
+    if len(failed_df) > 0:
         print(f"Could not import the following students's code even after running code_parser. You will need to manually correct them.")
-        print(df['student'].values)
+        print(failed_df['student'].values)

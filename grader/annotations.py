@@ -6,13 +6,21 @@ import functools
 def generate_custom_comparer(equality_fn):
     def decorator(func):
         assert callable(equality_fn), f'[Debug] Error while annotating function "{func.__name__}" [{equality_fn} must be a function]'
-        # TODO: Check that the parameter count matches the one used in grader
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             return func(*args, **kwargs)
 
         wrapper.equality_fn = equality_fn
+
+        # Check that the parameter count matches the one used in grader
+        n_params = len(inspect.signature(equality_fn).parameters.keys())
+        generates_classes = hasattr(func, 'class_kwargs')
+        if generates_classes:
+            assert n_params == 6, f'[Debug] equality_fn must have 6 parameters (sol_instnc, stu_instnc, sol_output, stu_output, sol_params, stu_params)'
+        else:
+            assert n_params == 4, f'[Debug] equality_fn must have 4 parameters (sol_output, stu_output, sol_params, stu_params)'
+
         return wrapper
     return decorator
 
@@ -26,6 +34,7 @@ def generate_class(__trials_per_instance__, **class_kwargs):
         return params
 
     def decorator(func):
+        assert not hasattr(func, 'equality_fn'), f'[Debug] Custom comparer annotation must be on top of class annotation'
         assert type(__trials_per_instance__) == int, f'[Debug] Error while annotating class function "{func.__name__}" [{__trials_per_instance__} must be an int]'
         for k_name, k_val in class_kwargs.items():
             assert callable(k_val), f'[Debug] Error while annotating class function "{func.__name__}" ["{k_name}" has to be a function, did you forget to include lambda?]'
@@ -50,6 +59,7 @@ def generate_test_case(__trials__=2500, **fn_kwargs):
         return params
 
     def decorator(func):
+        assert not hasattr(func, 'equality_fn'), f'[Debug] Custom comparer annotation must be on top of test case annotation'
         assert type(__trials__) == int, f'[Debug] Error while annotating function "{func.__name__}" [{__trials__} must be an int]'
         assert __trials__ > 0, f'[Debug] Error while annotating function "{func.__name__}" [{__trials__} must be greater than 0]'
         for k_name, k_fn in fn_kwargs.items():
@@ -70,6 +80,8 @@ def generate_test_case(__trials__=2500, **fn_kwargs):
 def set_test_case(**set_kwargs):
 
     def decorator(func):
+        assert not hasattr(func, 'equality_fn'), f'[Debug] Custom comparer annotation must be on top of test case annotation'
+
         max_trials = 1
         for k_name, k_data in set_kwargs.items():
             assert isinstance(k_data, tuple), f'[Debug] Error while annotating function "{func.__name__}" ["{k_name}" has to be a tuple]'

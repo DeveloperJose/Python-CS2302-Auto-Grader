@@ -31,7 +31,6 @@ def get_module_functions(module):
     fns = dict(inspect.getmembers(module, inspect.isfunction))
 
     # Get the classes if any and extract their functions
-    # TODO: Remove imported classes
     classes = inspect.getmembers(module, inspect.isclass)
     constructors = {}
 
