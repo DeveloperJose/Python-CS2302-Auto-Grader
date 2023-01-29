@@ -4,6 +4,8 @@ _data_/
 *.csv
 *.bbtxt
 *.xlsx
+split.txt
+_feedback_zips_/*
 
 # IMPORTANT: Ignore the solutions files
 _solutions_/

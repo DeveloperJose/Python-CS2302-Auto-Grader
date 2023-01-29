@@ -92,14 +92,14 @@ def diff_to_str(sol_output, stu_output):
         if hasattr(sol_output, '__class__'):
             # sol_str = sol_output.__class__.__str__
             # return f'Difference: Solution={sol_output} vs Student={sol_str(stu_output)}'
-            return f'Difference: The classes are not equivalent'
+            return f'The classes are not equivalent'
         else:
-            return f'Difference: Types are different (Solution={type(sol_output)} vs Student={type(stu_output)}'
+            return f'Types are different (Solution={type(sol_output)} vs Student={type(stu_output)}'
     elif type(sol_output) is set:
-        return f'Difference: Items in solution set but not in student set = {sol_output.difference(stu_output)}, item in student set but not in solution set = {stu_output.difference(sol_output)}'
+        return f'Items in solution set but not in student set = {sol_output.difference(stu_output)}, item in student set but not in solution set = {stu_output.difference(sol_output)}'
     elif type(sol_output) is list:
         if len(sol_output) != len(stu_output):
-            return f'Difference: Lists are not the same length (Solution={len(sol_output)} vs Student={len(stu_output)})'
+            return f'Lists are not the same length (Solution={len(sol_output)} vs Student={len(stu_output)})'
 
         # s = 'Difference: '
         idxs = []
@@ -108,6 +108,6 @@ def diff_to_str(sol_output, stu_output):
                 idxs.append(idx)
                 # s += f'(IDX={idx}, Solution={sol_item}, Student={stu_item}), '
         rand_idx = np.random.choice(idxs)
-        return f'Difference: There are [{len(idxs)}] indices that do not match. Let us see a random one -> IDX={rand_idx}, Solution[IDX] = {sol_output[rand_idx]}, Student[IDX] = {stu_output[rand_idx]}'
+        return f'There are [{len(idxs)}] indices that do not match. Let us see a random one -> IDX={rand_idx}, Solution[IDX] = {sol_output[rand_idx]}, Student[IDX] = {stu_output[rand_idx]}'
     else:
         return ''

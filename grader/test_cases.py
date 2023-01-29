@@ -41,7 +41,8 @@ class TestCaseGenerator:
         Returns an Exception when the student code fails.
         """
         # Log detailed failed cases every 1/3rd of the trials
-        self.log_next_failed_case = not self.log_next_failed_case and trial_idx % self.log_freq == 0
+        if trial_idx % self.log_freq == 0:
+            self.log_next_failed_case = True
 
         # Generate parameters for test case. Give student deep copy to decouple references
         sol_params = self.sol_code.create_fn_parameters(self.fn_name, trial_idx)
@@ -96,23 +97,23 @@ class TestCaseGenerator:
         
         # Check if we need to log the next failed test case
         if not has_passed_test and self.log_next_failed_case:
-            log_next_failed_case = False
+            self.log_next_failed_case = False
             self.stu_code.log_postfix(f'Logging')
-            if not has_passed_test and log_next_failed_case:
-                log_next_failed_case = False
 
+            # Only print the output differences when we are not using a custom comparer function
+            # Fixes Hassan's comment about not needing to print when output return type doesn't matter
+            if not self.has_equality_fn:
+                self.stu_code.write_feedback(f'Test Case #{trial_idx+1} failed | Reason => {diff_to_str(sol_output, stu_output)}')
+                self.stu_code.write_feedback(f'\t The Solution Outputs -> {self.fn_name}({params_to_str(sol_params)})={output_to_str(sol_output)}')
+                self.stu_code.write_feedback(f'\tYour Solution Outputs -> {self.fn_name}({params_to_str(stu_params)})={output_to_str(stu_output)}')
+                self.stu_code.write_feedback(f'')
+            else:
                 self.stu_code.write_feedback(f'Test Case #{trial_idx+1} failed')
-                # Only print the output differences when we are not using a custom comparer function
-                # Fixes Hassan's comment about not needing to print when output return type doesn't matter
-                if not self.has_equality_fn:
-                    self.stu_code.write_feedback(f'\t The Solution Outputs -> {self.fn_name}({params_to_str(sol_params)})={output_to_str(sol_output)}')
-                    self.stu_code.write_feedback(f'\tYour Solution Outputs -> {self.fn_name}({params_to_str(stu_params)})={output_to_str(stu_output)}\n')
-                    self.stu_code.write_feedback(f'\t{diff_to_str(sol_output, stu_output)}')
 
-                # Use our str function to print the student class
-                if self.is_class_fn:
-                    str_fn = self.sol_instnc.__class__.__str__
-                    self.stu_code.write_feedback(f'\tSolution Class = \n{self.sol_instnc}')
-                    self.stu_code.write_feedback(f'\tYour Class = \n{str_fn(self.stu_instnc)}\n')
+            # Use our str function to print the student class
+            if self.is_class_fn:
+                str_fn = self.sol_instnc.__class__.__str__
+                self.stu_code.write_feedback(f'\tSolution Class = \n{self.sol_instnc}')
+                self.stu_code.write_feedback(f'\tYour Class = \n{str_fn(self.stu_instnc)}\n')
 
         return has_passed_test
