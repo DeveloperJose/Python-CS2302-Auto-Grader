@@ -5,7 +5,7 @@ _data_/
 *.bbtxt
 *.xlsx
 split.txt
-_feedback_zips_/*
+_feedback_zips_/
 
 # IMPORTANT: Ignore the solutions files
 _solutions_/

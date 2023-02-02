@@ -14,7 +14,6 @@ from grader.student_code import StudentCode
 from grader.solution_code import SolutionCode
 from grader.test_cases import TestCaseGenerator
 from grader.utils import Colors
-from grader.code_parser import parse_py_file
 
 
 class Grader:
@@ -140,6 +139,7 @@ class Grader:
 
         # Create summary file
         self.df = pd.DataFrame.from_records(all_scores)
+        self.df = self.df.sort_values('student')
         print("Creating summary file with scores per problem")
         print(self.df)
         self.df.to_excel(self.summary_path, index=False)
@@ -148,9 +148,6 @@ class Grader:
         """Grades all functions of a given student."""
 
         with StudentCode(self.student_dir, fpath, self.all_student_files) as stu_code:
-            # First we want to clean the code
-            parse_py_file(stu_code)
-
             # Open a progress bar for visualization in the command-line
             stu_code.log(f'Importing module')
             stu_code.p_bar.total = 100

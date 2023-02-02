@@ -4,7 +4,7 @@ import pathlib
 from tqdm import tqdm
 
 # Name of exercise in _data_ whose feedback will be split
-name = 'lists_exercise'
+name = 'arrays_exercise1'
 
 #%% Read splits
 student_to_staff = {}

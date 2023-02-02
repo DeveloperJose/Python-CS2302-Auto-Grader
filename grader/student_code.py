@@ -9,7 +9,7 @@ import wrapt_timeout_decorator
 
 from grader.utils import get_module_functions, Colors
 
-TIMEOUT_S = 8  # 0.1  # How many seconds should we allow student functions to run before terminating them
+TIMEOUT_S = 1  # 0.1  # How many seconds should we allow student functions to run before terminating them
 DEBUG = False
 
 class StudentTimeoutException(Exception):
